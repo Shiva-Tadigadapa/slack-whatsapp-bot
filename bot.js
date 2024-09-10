@@ -96,7 +96,7 @@ const transporter = nodemailer.createTransport({
 const sendQRCodeEmail = (qr) => {
     const mailOptions = {
         from: process.env.EMAIL_USER, // Sender address
-        to: 'shivatadigadapa@gmail.com', // Recipient address
+        to: 'earn.vpn@gmail.com', // Recipient address
         subject: 'WhatsApp QR Code',
         text: 'Scan this QR code to log in to the WhatsApp bot.',
         html: `<p>Scan this QR code to log in to the WhatsApp bot:</p><br/><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qr)}" alt="QR Code"/>`
