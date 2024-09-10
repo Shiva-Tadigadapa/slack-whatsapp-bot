@@ -76,30 +76,34 @@ const qrcode = require('qrcode-terminal');
 const nodemailer = require('nodemailer');
 const express = require('express');
 const bodyParser = require('body-parser');
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args)); // ES module import workaround for node-fetch
 require('dotenv').config();
+
+const app = express();
+app.use(bodyParser.json());
+
+const PORT = process.env.PORT || 3000;
 
 // Initialize the WhatsApp client with local authentication
 const client = new Client({
     authStrategy: new LocalAuth()
 });
 
-// Configure nodemailer
+// Configure nodemailer for sending QR code via email
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // You can change this service or configure SMTP settings for your email provider
+    service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER, // Your email address (stored in .env file)
-        pass: process.env.EMAIL_PASS  // Your email password or app-specific password (stored in .env file)
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
-
 
 // Function to send QR code via email
 const sendQRCodeEmail = (qr) => {
     const mailOptions = {
-        from: process.env.EMAIL_USER, // Sender address
-        to: 'earn.vpn@gmail.com', // Recipient address
+        from: process.env.EMAIL_USER,
+        to: 'shivatadigadapa@gmail.com',
         subject: 'WhatsApp QR Code',
-        text: 'Scan this QR code to log in to the WhatsApp bot.',
         html: `<p>Scan this QR code to log in to the WhatsApp bot:</p><br/><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qr)}" alt="QR Code"/>`
     };
 
@@ -112,10 +116,10 @@ const sendQRCodeEmail = (qr) => {
     });
 };
 
-// Generate QR code for authentication
+// Generate QR code for WhatsApp authentication
 client.on('qr', (qr) => {
     qrcode.generate(qr, { small: true });
-    sendQRCodeEmail(qr); // Send the QR code via email
+    sendQRCodeEmail(qr);
 });
 
 // Confirm successful authentication and start listening to messages
@@ -123,41 +127,29 @@ client.on('ready', () => {
     console.log('WhatsApp bot is ready!');
 });
 
-// Listen for incoming messages
+// Listen for incoming WhatsApp messages
 client.on('message', async (message) => {
     try {
-        const chat = await message.getChat(); // Get the chat object for the message
+        const chat = await message.getChat();
 
-        if (chat.isGroup && chat.name === 'DevAtoms') { // Check if it's from the desired group
+        if (chat.isGroup && chat.name === 'DevAtoms') {
             console.log(`Received message from group ${chat.name}: ${message.body}`);
 
-            // Dynamically import node-fetch to handle ES module
-            const fetch = (await import('node-fetch')).default;
-
-            // Slack Incoming Webhook URL
+            // Send the message to Slack
             const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
+            const response = await fetch(slackWebhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: `Message from WhatsApp Group "${chat.name}" by ${message.author}:\n${message.body}`
+                })
+            });
 
-            try {
-                // Send the message to Slack
-                const slackResponse = await fetch(slackWebhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        text: `Message from WhatsApp Group "${chat.name}" by ${message.author}:\n${message.body}`
-                    })
-                });
-
-                if (slackResponse.ok) {
-                    console.log('Message sent to Slack successfully!');
-                } else {
-                    const errorText = await slackResponse.text();
-                    console.error(`Failed to send message to Slack. Status: ${slackResponse.status}. Error: ${errorText}`);
-                }
-            } catch (fetchError) {
-                console.error('Error making request to Slack:', fetchError);
-                chat.sendMessage('Error making request to Slack.');
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Failed to send message to Slack. Status: ${response.status}. Error: ${errorText}`);
+            } else {
+                console.log('Message sent to Slack successfully!');
             }
         }
     } catch (error) {
@@ -165,13 +157,33 @@ client.on('message', async (message) => {
     }
 });
 
-client.initialize();
+// Route to handle Slack events
+app.post('/slack/events', async (req, res) => {
+    const event = req.body.event;
 
-// Setup Express server to handle Slack events (optional if needed)
-const app = express();
-app.use(bodyParser.json());
+    // Check if it's a message event
+    if (event && event.type === 'message' && event.text && !event.bot_id) {
+        try {
+            const chat = await client.getChats();
+            const devAtomsChat = chat.find(c => c.isGroup && c.name === 'DevAtoms');
 
-const PORT = process.env.PORT || 3000;
+            if (devAtomsChat) {
+                await devAtomsChat.sendMessage(`Message from Slack by ${event.user}:\n${event.text}`);
+                console.log('Message sent to WhatsApp group DevAtoms.');
+            } else {
+                console.error('DevAtoms group not found.');
+            }
+        } catch (error) {
+            console.error('Error sending message to WhatsApp:', error);
+        }
+    }
+
+    res.sendStatus(200); // Acknowledge the event to Slack
+});
+
+// Start the Express server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+client.initialize();
