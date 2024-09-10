@@ -73,17 +73,48 @@
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const nodemailer = require('nodemailer');
 const express = require('express');
 const bodyParser = require('body-parser');
 require('dotenv').config();
+
 // Initialize the WhatsApp client with local authentication
 const client = new Client({
     authStrategy: new LocalAuth()
 });
 
+// Configure nodemailer
+const transporter = nodemailer.createTransport({
+    service: 'gmail', // You can change this service or configure SMTP settings for your email provider
+    auth: {
+        user: process.env.EMAIL_USER, // Your email address (stored in .env file)
+        pass: process.env.EMAIL_PASS  // Your email password or app-specific password (stored in .env file)
+    }
+});
+
+// Function to send QR code via email
+const sendQRCodeEmail = (qr) => {
+    const mailOptions = {
+        from: process.env.EMAIL_USER, // Sender address
+        to: 'shivatadigadapa@gmail.com', // Recipient address
+        subject: 'WhatsApp QR Code',
+        text: 'Scan this QR code to log in to the WhatsApp bot.',
+        html: `<p>Scan this QR code to log in to the WhatsApp bot:</p><br/><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qr)}" alt="QR Code"/>`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Error sending email:', error);
+        } else {
+            console.log('Email sent successfully:', info.response);
+        }
+    });
+};
+
 // Generate QR code for authentication
 client.on('qr', (qr) => {
     qrcode.generate(qr, { small: true });
+    sendQRCodeEmail(qr); // Send the QR code via email
 });
 
 // Confirm successful authentication and start listening to messages
@@ -98,7 +129,6 @@ client.on('message', async (message) => {
 
         if (chat.isGroup && chat.name === 'DevAtoms') { // Check if it's from the desired group
             console.log(`Received message from group ${chat.name}: ${message.body}`);
-            // chat.sendMessage("Message sending to Slack.....");
 
             // Dynamically import node-fetch to handle ES module
             const fetch = (await import('node-fetch')).default;
@@ -120,11 +150,9 @@ client.on('message', async (message) => {
 
                 if (slackResponse.ok) {
                     console.log('Message sent to Slack successfully!');
-                    // chat.sendMessage("Message Sent To Slack.");
                 } else {
                     const errorText = await slackResponse.text();
                     console.error(`Failed to send message to Slack. Status: ${slackResponse.status}. Error: ${errorText}`);
-                    // chat.sendMessage(`Failed to send message to Slack. Status: ${slackResponse.status}. Error: ${errorText}`);
                 }
             } catch (fetchError) {
                 console.error('Error making request to Slack:', fetchError);
