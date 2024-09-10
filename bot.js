@@ -164,9 +164,9 @@ app.post('/slack/events', async (req, res) => {
     // Check if it's a message event
     if (event && event.type === 'message' && event.text && !event.bot_id) {
         try {
-            const chat = await client.getChats();
-            const devAtomsChat = chat.find(c => c.isGroup && c.name === 'DevAtoms');
-
+            // const chat = await client.getChats();
+            // const devAtomsChat = chat.find(c => c.isGroup && c.name === 'DevAtoms');
+            client.sendMessage( `Message from Slack by......`);
             if (devAtomsChat) {
                 await devAtomsChat.sendMessage(`Message from Slack by ${event.user}:\n${event.text}`);
                 console.log('Message sent to WhatsApp group DevAtoms.');
