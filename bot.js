@@ -92,6 +92,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+
 // Function to send QR code via email
 const sendQRCodeEmail = (qr) => {
     const mailOptions = {
