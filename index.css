@@ -1,0 +1,150 @@
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    color: #fff;
+    background-color: #1e1e2f; /* Dark blue background */
+}
+
+.header .top-bar {
+    background-color: #6a5acd; /* Medium slate blue */
+    text-align: center;
+    padding: 10px 0;
+    font-size: 14px;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #252540; /* Darker blue */
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #7fdbff; /* Light blue */
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: #b0c4de; /* Light steel blue */
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #7fdbff; /* Light blue on hover */
+}
+
+.auth-buttons a {
+    margin-left: 10px;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    color: #fff;
+}
+
+.sign-in {
+    background-color: transparent;
+    border: 1px solid #7fdbff; /* Light blue border */
+}
+
+.sign-up {
+    background-color: #7fdbff; /* Light blue */
+    border: none;
+}
+
+.sign-up:hover {
+    background-color: #1e90ff; /* Dodger blue on hover */
+}
+
+.hero {
+    background-image: url('hero-image.jpg'); /* Replace with your image */
+    background-size: cover;
+    background-position: center;
+    padding: 100px 20px;
+    text-align: center;
+    background-color: rgba(30, 30, 47, 0.85); /* Semi-transparent overlay */
+}
+
+.hero h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    color: #7fdbff; /* Light blue */
+}
+
+.hero p {
+    font-size: 18px;
+    max-width: 600px;
+    margin: 0 auto;
+    color: #dcdcdc; /* Light gray */
+}
+
+.features {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding: 50px 20px;
+    background-color: #252540; /* Darker blue */
+}
+
+.feature {
+    flex: 1;
+    margin: 10px;
+    max-width: 300px;
+    text-align: center;
+    background-color: #313153; /* Medium blue */
+    padding: 20px;
+    border-radius: 8px;
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+.feature:hover {
+    transform: translateY(-5px);
+    background-color: #3a3a66; /* Slightly lighter blue */
+}
+
+.feature h2 {
+    margin-bottom: 10px;
+    color: #7fdbff; /* Light blue */
+}
+
+.feature p {
+    color: #b0c4de; /* Light steel blue */
+}
+
+.feature button {
+    background-color: #7fdbff; /* Light blue */
+    border: none;
+    padding: 10px 20px;
+    color: #252540; /* Darker blue for contrast */
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.feature button:hover {
+    background-color: #1e90ff; /* Dodger blue */
+}
+
+.footer {
+    background-color: #252540; /* Darker blue */
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+    color: #aaa;
+}
